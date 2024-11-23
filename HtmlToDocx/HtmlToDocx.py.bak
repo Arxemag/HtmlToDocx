@@ -1,0 +1,19 @@
+import requests
+from htmldocx import HtmlToDocx
+
+# URL страницы
+url = "http://suntd.kodeks.expert:1210/docs/d?nd=1200173462"
+
+# Загружаем HTML-страницу
+response = requests.get(url)
+html_content = response.text
+
+# Конвертируем HTML в DOCX
+converter = HtmlToDocx()
+docx_content = converter.parse_html_string(html_content)
+
+# Сохраняем результат в файл
+output_file = "output.docx"
+docx_content.save(output_file)
+
+print(f"HTML-страница успешно сохранена в {output_file}")
