@@ -5,9 +5,8 @@ import json
 import time
 import os
 import logging
-from tqdm import tqdm # Импортируем tqdm для прогресс-бара
+from tqdm import tqdm
 
-# Настройка логирования для записи в файл
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -20,12 +19,10 @@ URL_firstPart = "http://suntd.kodeks.expert:1210/test/text?nd="
 URL_secondPart = "&nh=0&print=1&links=1&save=1&origin=1"
 pattern = re.compile(r'nd=(\d+)')
 
-# Пример куки
 cookies = {
     'cookie_name': 'cookie_value'
 }
 
-# Чтение значений nd из текстового файла
 with open('nd_values.txt', 'r') as file:
     nd_list = list(set(line.strip() for line in file))
 
@@ -133,7 +130,6 @@ def process_document(session, nd, directory, is_nd_list=True):
     
     return nd_numbers
 
-
 spp_dir = 'СПП'
 norma_dir = 'Норма'
 os.makedirs(spp_dir, exist_ok=True)
@@ -141,6 +137,7 @@ os.makedirs(norma_dir, exist_ok=True)
 
 session = create_session()
 document_count = 0
+all_related_nd_numbers = set()
 
 # Прогресс-бар для основного списка nd_list
 for nd in tqdm(nd_list, desc="Обработка nd_list"):
@@ -150,13 +147,13 @@ for nd in tqdm(nd_list, desc="Обработка nd_list"):
         logging.info("Перезапуск сессии после выгрузки 50 документов.")
 
     nd_numbers = process_document(session, nd, spp_dir, is_nd_list=True)
-    nd_numbers = [number for number in nd_numbers if number not in nd_list]
-    logging.info(f"После удаления дублей осталось {len(nd_numbers)} уникальных связанных документов для nd={nd}")
-    
-    # Прогресс-бар для связанных документов
-    for number in tqdm(nd_numbers, desc=f"Обработка связанных документов для nd={nd}", leave=False):
-        process_document(session, number, norma_dir, is_nd_list=False)
+    all_related_nd_numbers.update(nd_numbers)
     
     document_count += 1
     logging.info(f"Обработано документов: {document_count}")
+    time.sleep(DELAY)
+
+# Обработка всех уникальных связанных документов
+for number in tqdm(all_related_nd_numbers, desc="Обработка связанных документов"):
+    process_document(session, number, norma_dir, is_nd_list=False)
     time.sleep(DELAY)
